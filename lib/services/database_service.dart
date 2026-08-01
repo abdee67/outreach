@@ -17,7 +17,7 @@ class DatabaseService {
 
   Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'my_crm.db');
+    final path = join(dbPath, 'outreach.db');
 
     return openDatabase(
       path,
@@ -113,23 +113,27 @@ class DatabaseService {
         : '';
     final args = category != null && category.isNotEmpty ? [category] : <Object?>[];
 
-    final totalResult = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM businesses $where',
-      args,
-    );
-    final calledResult = await db.rawQuery(
-      "SELECT COUNT(*) as count FROM businesses $where${where.isEmpty ? 'WHERE' : ' AND'} status IN ('called', 'interested', 'booked', 'rejected')",
-      args,
-    );
-    final bookedResult = await db.rawQuery(
-      "SELECT COUNT(*) as count FROM businesses $where${where.isEmpty ? 'WHERE' : ' AND'} status = 'booked'",
-      args,
-    );
+    final result = await db.rawQuery('''
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'notContacted' THEN 1 ELSE 0 END) as notContacted,
+        SUM(CASE WHEN status = 'called' THEN 1 ELSE 0 END) as called,
+        SUM(CASE WHEN status = 'interested' THEN 1 ELSE 0 END) as interested,
+        SUM(CASE WHEN status = 'booked' THEN 1 ELSE 0 END) as booked,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
+      FROM businesses $where
+    ''', args);
+
+    if (result.isEmpty) return BusinessStats.empty;
+    final row = result.first;
 
     return BusinessStats(
-      total: Sqflite.firstIntValue(totalResult) ?? 0,
-      called: Sqflite.firstIntValue(calledResult) ?? 0,
-      booked: Sqflite.firstIntValue(bookedResult) ?? 0,
+      total: (row['total'] as num?)?.toInt() ?? 0,
+      notContacted: (row['notContacted'] as num?)?.toInt() ?? 0,
+      called: (row['called'] as num?)?.toInt() ?? 0,
+      interested: (row['interested'] as num?)?.toInt() ?? 0,
+      booked: (row['booked'] as num?)?.toInt() ?? 0,
+      rejected: (row['rejected'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -175,7 +179,7 @@ class DatabaseService {
           where: 'name = ? AND IFNULL(category, \'\') = IFNULL(?, \'\')',
           whereArgs: [business.name, business.category],
           limit: 1,
-        );
+      );
 
         if (existing.isEmpty) {
           await txn.insert('businesses', business.toMap()..remove('id'));

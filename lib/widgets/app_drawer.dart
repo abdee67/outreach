@@ -89,7 +89,7 @@ class _DrawerHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Outreach CRM',
+            'Outreach',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: AppColors.burgundy,
                 ),

@@ -5,16 +5,16 @@ import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const OutreachCrmApp());
+  runApp(const OutreachApp());
 }
 
-class OutreachCrmApp extends StatelessWidget {
-  const OutreachCrmApp({super.key});
+class OutreachApp extends StatelessWidget {
+  const OutreachApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Outreach CRM',
+      title: 'Outreach',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: const HomeScreen(),

@@ -12,7 +12,6 @@ import '../widgets/business_card.dart';
 import '../widgets/business_detail_sheet.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/stats_bar.dart';
-import '../widgets/status_filter_chips.dart';
 import 'column_mapping_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -216,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       appBar: AppBar(
-        title: Text(hasData ? _appBarTitle : 'Outreach CRM'),
+        title: Text(hasData ? _appBarTitle : 'Outreach'),
         automaticallyImplyLeading: hasData,
         actions: [
           if (hasData)
@@ -265,7 +264,11 @@ class _HomeScreenState extends State<HomeScreen> {
           : hasData
               ? Column(
                   children: [
-                    StatsBar(stats: _stats),
+                    StatsBar(
+                      stats: _stats,
+                      selectedStatus: _statusFilter,
+                      onStatusSelected: _selectStatusFilter,
+                    ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                       child: TextField(
@@ -281,11 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               : null,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    StatusFilterChips(
-                      selected: _statusFilter,
-                      onSelected: _selectStatusFilter,
                     ),
                     const SizedBox(height: 8),
                     Expanded(

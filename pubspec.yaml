@@ -1,4 +1,4 @@
-name: my_crm
+name: outreach
 description: "A lightweight offline CRM for local business outreach."
 publish_to: 'none'
 
@@ -12,12 +12,12 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   sqflite: ^2.4.3
-  file_picker: ^11.0.3
+  file_picker: ^10.3.3
   csv: ^8.0.0
   url_launcher: ^6.3.2
   google_fonts: ^8.2.0
   path_provider: ^2.1.6
-  share_plus: ^13.3.0
+  share_plus: ^12.0.2
   flutter_slidable: ^4.0.3
   path: ^1.9.1
 
@@ -25,6 +25,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons: 
+  android: true
+  ios: true
+  image_path: "assets/outreach.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#004d40"
+  adaptive_icon_foreground: "assets/outreach.png"
+  android_foreground_mode: "auto"
 
 flutter:
+  assets:
+    - assets/outreach.png
   uses-material-design: true

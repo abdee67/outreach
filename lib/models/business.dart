@@ -105,13 +105,26 @@ class CategoryCount {
 class BusinessStats {
   const BusinessStats({
     required this.total,
+    required this.notContacted,
     required this.called,
+    required this.interested,
     required this.booked,
+    required this.rejected,
   });
 
   final int total;
+  final int notContacted;
   final int called;
+  final int interested;
   final int booked;
+  final int rejected;
 
-  static const empty = BusinessStats(total: 0, called: 0, booked: 0);
+  static const empty = BusinessStats(
+    total: 0, 
+    notContacted: 0,
+    called: 0, 
+    interested: 0,
+    booked: 0,
+    rejected: 0,
+  );
 }

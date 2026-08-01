@@ -1,7 +1,4 @@
-Here's a complete, ready-to-use README.md file. Just copy and paste the entire content below:
-
-```markdown
-# Outreach CRM
+# Outreach
 
 A modern, feature-rich Customer Relationship Management (CRM) application built with Flutter, designed for managing business outreach with CSV import/export capabilities, dynamic categorization, and an intuitive mobile interface.
 
@@ -82,8 +79,8 @@ lib/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/outreach-crm.git
-   cd outreach-crm
+   git clone https://github.com/yourusername/outreach.git
+   cd outreach
    ```
 
 2. **Install dependencies**
@@ -181,6 +178,3 @@ Project Link: [https://github.com/yourusername/outreach-crm](https://github.com/
 ---
 
 **Built with ❤️ using Flutter**
-```
-
-This is the complete README file. You can copy everything above and paste it directly into your `README.md` file. Just remember to update the placeholder information like GitHub URLs, contact details, and screenshots with your actual project information.
