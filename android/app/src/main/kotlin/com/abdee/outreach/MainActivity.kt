@@ -1,4 +1,4 @@
-package com.example.my_crm
+package com.abdee.outreach
 
 import io.flutter.embedding.android.FlutterActivity
 
