@@ -64,45 +64,7 @@ lib/
 └── theme/
     ├── app_colors.dart               # Color palette definition
     └── app_theme.dart               # Theme configuration
-```
-
-## Getting Started
-
-### Prerequisites
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) (3.x or higher)
-- [Dart SDK](https://dart.dev/get-dart) (3.x or higher)
-- Android Studio / VS Code with Flutter extensions
-- iOS: Xcode (for iOS development)
-- Android: Android Studio with SDK tools
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/outreach.git
-   cd outreach
-   ```
-
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Run the app**
-   ```bash
-   flutter run
-   ```
-
-### Platform-Specific Setup
-
-#### Android
-No additional configuration required.
-
-#### iOS
-Add required permissions to `ios/Runner/Info.plist`:
-```xml
-<key>NSContactsUsageDescription</key>
-<string>This app requires contacts access for calling businesses</string>
+    
 ```
 
 ## Dependencies
@@ -137,44 +99,5 @@ Add required permissions to `ios/Runner/Info.plist`:
 2. Tap the export button
 3. Choose sharing method
 4. CSV file includes all visible fields plus status and notes
-
-## Customization
-
-### Colors
-Modify `lib/theme/app_colors.dart` to update the color scheme:
-```dart
-class AppColors {
-  static const Color primary = Color(0xFF...);
-  // Customize other colors here
-}
-```
-
-### Typography
-Font files are located in `assets/fonts/`. To change fonts:
-1. Add new font files to the assets directory
-2. Update `pubspec.yaml` font configuration
-3. Modify `lib/theme/app_theme.dart` text themes
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## Contact
-
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
-
-Project Link: [https://github.com/yourusername/outreach-crm](https://github.com/yourusername/outreach-crm)
-
----
 
 **Built with ❤️ using Flutter**
