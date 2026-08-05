@@ -6,11 +6,14 @@ import '../models/business_status.dart';
 import '../services/csv_service.dart';
 import '../services/database_service.dart';
 import '../services/export_service.dart';
+import '../services/notification_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/business_card.dart';
 import '../widgets/business_detail_sheet.dart';
+import '../widgets/call_duration_sheet.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/reject_reason_sheet.dart';
 import '../widgets/stats_bar.dart';
 import 'column_mapping_screen.dart';
 
@@ -21,7 +24,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -37,9 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   bool _isExporting = false;
 
+  int? _pendingCallBusinessId;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text.trim());
       _loadBusinesses();
@@ -49,8 +55,40 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _handleReturnFromCall();
+    }
+  }
+
+  Future<void> _handleReturnFromCall() async {
+    final businessId = _pendingCallBusinessId;
+    if (businessId == null || !mounted) return;
+
+    _pendingCallBusinessId = null;
+
+    final business = await DatabaseService.instance.getBusinessById(businessId);
+    if (business == null || !mounted) return;
+
+    await CallDurationSheet.show(
+      context,
+      businessName: business.name,
+      onSave: (minutes) async {
+        final updated = business.recordCall(durationMin: minutes);
+        await DatabaseService.instance.updateBusiness(updated);
+        await _loadData();
+      },
+    );
+  }
+
+  void _onCallStarted(Business business) {
+    _pendingCallBusinessId = business.id;
   }
 
   Future<void> _loadData() async {
@@ -163,9 +201,40 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _updateStatus(Business business, BusinessStatus status) async {
-    await DatabaseService.instance.updateStatus(business.id!, status);
+  Future<void> _applyStatusChange(
+    Business business,
+    BusinessStatus status,
+  ) async {
+    if (status == BusinessStatus.rejected) {
+      final reason = await RejectReasonSheet.show(
+        context,
+        businessName: business.name,
+      );
+      if (reason == null || !mounted) return;
+
+      final updated = business.copyWith(
+        status: BusinessStatus.rejected,
+        rejectReason: reason,
+      );
+      await DatabaseService.instance.updateBusiness(updated);
+    } else {
+      var updated = business.copyWith(
+        status: status,
+        clearRejectReason: status != BusinessStatus.rejected,
+      );
+
+      if (status == BusinessStatus.booked && business.dateBooked == null) {
+        updated = updated.copyWith(dateBooked: DateTime.now());
+      }
+
+      await DatabaseService.instance.updateBusiness(updated);
+    }
+
     await _loadData();
+  }
+
+  Future<void> _updateStatus(Business business, BusinessStatus status) async {
+    await _applyStatusChange(business, status);
   }
 
   Future<void> _cycleStatus(Business business) async {
@@ -173,11 +242,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _saveBusiness(Business business) async {
-    await DatabaseService.instance.updateBusiness(business);
+    var updated = business;
+
+    if (business.status == BusinessStatus.booked &&
+        updated.dateBooked == null) {
+      updated = updated.copyWith(dateBooked: DateTime.now());
+    }
+
+    await DatabaseService.instance.updateBusiness(updated);
+
+    if (business.followUpDate != null) {
+      await NotificationService.instance.scheduleFollowUp(
+        businessId: business.id!,
+        businessName: business.name,
+        note: business.notes,
+        scheduledAt: business.followUpDate!,
+      );
+    } else {
+      await NotificationService.instance.cancelFollowUp(business.id!);
+    }
+
     await _loadData();
   }
 
   Future<void> _deleteBusiness(Business business) async {
+    await NotificationService.instance.cancelFollowUp(business.id!);
     await DatabaseService.instance.deleteBusiness(business.id!);
     await _loadData();
   }
@@ -307,6 +396,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     context,
                                     business: business,
                                     onSave: _saveBusiness,
+                                    onCallStarted: _onCallStarted,
+                                    onStatusChanged: _applyStatusChange,
                                   ),
                                   onStatusTap: () => _cycleStatus(business),
                                   onDelete: () => _deleteBusiness(business),

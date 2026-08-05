@@ -21,34 +21,74 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE businesses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            address TEXT,
-            category TEXT,
-            phone TEXT,
-            latitude REAL,
-            longitude REAL,
-            google_maps_url TEXT,
-            status TEXT NOT NULL DEFAULT 'notContacted',
-            notes TEXT NOT NULL DEFAULT '',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-          )
-        ''');
-        await db.execute(
-          'CREATE INDEX idx_businesses_category ON businesses(category)',
-        );
-        await db.execute(
-          'CREATE INDEX idx_businesses_status ON businesses(status)',
-        );
-        await db.execute(
-          'CREATE INDEX idx_businesses_name ON businesses(name)',
-        );
+        await _createBusinessesTable(db);
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN date_first_contacted TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN date_last_contacted TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN total_call_attempts INTEGER NOT NULL DEFAULT 0',
+          );
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN last_call_duration_min INTEGER',
+          );
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN follow_up_date TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN reject_reason TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN deal_value REAL',
+          );
+          await db.execute(
+            'ALTER TABLE businesses ADD COLUMN date_booked TEXT',
+          );
+        }
+      },
+    );
+  }
+
+  Future<void> _createBusinessesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE businesses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        address TEXT,
+        category TEXT,
+        phone TEXT,
+        latitude REAL,
+        longitude REAL,
+        google_maps_url TEXT,
+        status TEXT NOT NULL DEFAULT 'notContacted',
+        notes TEXT NOT NULL DEFAULT '',
+        date_first_contacted TEXT,
+        date_last_contacted TEXT,
+        total_call_attempts INTEGER NOT NULL DEFAULT 0,
+        last_call_duration_min INTEGER,
+        follow_up_date TEXT,
+        reject_reason TEXT,
+        deal_value REAL,
+        date_booked TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_businesses_category ON businesses(category)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_businesses_status ON businesses(status)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_businesses_name ON businesses(name)',
     );
   }
 
@@ -179,7 +219,7 @@ class DatabaseService {
           where: 'name = ? AND IFNULL(category, \'\') = IFNULL(?, \'\')',
           whereArgs: [business.name, business.category],
           limit: 1,
-      );
+        );
 
         if (existing.isEmpty) {
           await txn.insert('businesses', business.toMap()..remove('id'));
@@ -192,6 +232,14 @@ class DatabaseService {
                   id: current.id,
                   status: current.status,
                   notes: current.notes,
+                  dateFirstContacted: current.dateFirstContacted,
+                  dateLastContacted: current.dateLastContacted,
+                  totalCallAttempts: current.totalCallAttempts,
+                  lastCallDurationMin: current.lastCallDurationMin,
+                  followUpDate: current.followUpDate,
+                  rejectReason: current.rejectReason,
+                  dealValue: current.dealValue,
+                  dateBooked: current.dateBooked,
                 )
                 .copyWith(updatedAt: DateTime.now())
                 .toMap()
@@ -236,5 +284,17 @@ class DatabaseService {
     final db = await database;
     final maps = await db.query('businesses', orderBy: 'name COLLATE NOCASE ASC');
     return maps.map(Business.fromMap).toList();
+  }
+
+  Future<Business?> getBusinessById(int id) async {
+    final db = await database;
+    final maps = await db.query(
+      'businesses',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return Business.fromMap(maps.first);
   }
 }

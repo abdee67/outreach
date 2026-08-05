@@ -72,7 +72,32 @@ class BusinessCard extends StatelessWidget {
                               ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      if (business.hasPendingFollowUp) ...[
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.peach,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.border.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 14,
+                                color: AppColors.clay,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       StatusBadge(
                         status: business.status,
                         onTap: onStatusTap,
