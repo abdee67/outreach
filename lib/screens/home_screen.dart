@@ -1,12 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:outreach/services/notifications/notification_service.dart';
 
 import '../models/business.dart';
 import '../models/business_status.dart';
 import '../services/csv_service.dart';
 import '../services/database_service.dart';
 import '../services/export_service.dart';
-import '../services/notification_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/business_card.dart';
@@ -46,6 +46,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    NotificationService.instance.pendingBusinessId.addListener(
+      _handlePendingNotificationTap,
+    );
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text.trim());
       _loadBusinesses();
@@ -56,6 +59,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    NotificationService.instance.pendingBusinessId.removeListener(
+      _handlePendingNotificationTap,
+    );
     _searchController.dispose();
     super.dispose();
   }
@@ -64,7 +70,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _handleReturnFromCall();
+      _handlePendingNotificationTap();
     }
+  }
+
+  void _handlePendingNotificationTap() {
+    final businessId = NotificationService.instance.consumePendingBusinessId();
+    if (businessId == null || !mounted) return;
+    _openBusinessFromNotification(businessId);
+  }
+
+  Future<void> _openBusinessFromNotification(int businessId) async {
+    final business = await DatabaseService.instance.getBusinessById(businessId);
+    if (business == null || !mounted) return;
+
+    await BusinessDetailSheet.show(
+      context,
+      business: business,
+      onSave: _saveBusiness,
+      onCallStarted: _onCallStarted,
+      onStatusChanged: _applyStatusChange,
+    );
   }
 
   Future<void> _handleReturnFromCall() async {
@@ -104,6 +130,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       statusFilter: _statusFilter,
     );
 
+    final allBusinesses = await DatabaseService.instance.getAllBusinesses();
+    await NotificationService.instance.reschedulePendingFollowUps(allBusinesses);
+
     if (mounted) {
       setState(() {
         _categories = categories;
@@ -113,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _businesses = businesses;
         _isLoading = false;
       });
+      _handlePendingNotificationTap();
     }
   }
 
@@ -250,18 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     await DatabaseService.instance.updateBusiness(updated);
-
-    if (business.followUpDate != null) {
-      await NotificationService.instance.scheduleFollowUp(
-        businessId: business.id!,
-        businessName: business.name,
-        note: business.notes,
-        scheduledAt: business.followUpDate!,
-      );
-    } else {
-      await NotificationService.instance.cancelFollowUp(business.id!);
-    }
-
+    await NotificationService.instance.syncFollowUpForBusiness(updated);
     await _loadData();
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:outreach/services/notifications/notification_service.dart';
 
 import 'screens/home_screen.dart';
-import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {

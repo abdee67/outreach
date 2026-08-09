@@ -3,7 +3,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/business.dart';
 import '../models/business_status.dart';
-import '../services/notification_service.dart';
 import '../theme/app_colors.dart';
 import 'status_badge.dart';
 
@@ -142,13 +141,6 @@ class _BusinessDetailSheetState extends State<BusinessDetailSheet> {
 
     final updated = widget.business.copyWith(followUpDate: scheduled);
     widget.onSave(updated);
-
-    await NotificationService.instance.scheduleFollowUp(
-      businessId: widget.business.id!,
-      businessName: widget.business.name,
-      note: _notesController.text.trim(),
-      scheduledAt: scheduled,
-    );
   }
 
   Future<void> _clearFollowUp() async {
@@ -156,8 +148,6 @@ class _BusinessDetailSheetState extends State<BusinessDetailSheet> {
 
     final updated = widget.business.copyWith(clearFollowUpDate: true);
     widget.onSave(updated);
-
-    await NotificationService.instance.cancelFollowUp(widget.business.id!);
   }
 
   Future<void> _handleStatusChange(BusinessStatus status) async {
