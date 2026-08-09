@@ -1,6 +1,6 @@
 # Outreach
 
-A modern, feature-rich Customer Relationship Management (CRM) application built with Flutter, designed for managing business outreach with CSV import/export capabilities, dynamic categorization, and an intuitive mobile interface.
+A feature-rich Customer Relationship Management (CRM) application built with Flutter, designed for managing business outreach with CSV import/export capabilities, dynamic categorization, and an intuitive mobile interface.
 
 ## Features
 
@@ -33,50 +33,6 @@ A modern, feature-rich Customer Relationship Management (CRM) application built 
 ### Export Functionality
 - **Export filtered lists** preserving statuses and notes
 - **Share integration** via `share_plus` for seamless file sharing
-
-### Design System
-- **Material 3** design language
-- **Custom typography** – Inter + Plus Jakarta Sans fonts
-- **Warm paper background** for reduced eye strain
-- **Curated color palette** via `AppColors` with consistent theming
-
-## Project Structure
-
-```
-lib/
-├── main.dart                          # App entry point
-├── models/
-│   ├── business.dart                  # Business data model
-│   ├── business_status.dart           # Status enumeration
-│   └── csv_field.dart                 # CSV field mapping model
-├── services/
-│   ├── database_service.dart          # Local data persistence
-│   ├── csv_service.dart              # CSV parsing logic
-│   └── export_service.dart           # Data export functionality
-├── screens/
-│   ├── home_screen.dart              # Main business list & categories
-│   └── column_mapping_screen.dart    # CSV import column mapper
-├── widgets/
-│   ├── app_drawer.dart               # Navigation drawer
-│   ├── business_card.dart            # Business list item card
-│   ├── business_detail_sheet.dart    # Bottom sheet with actions
-│   └── ...                           # Additional widgets
-└── theme/
-    ├── app_colors.dart               # Color palette definition
-    └── app_theme.dart               # Theme configuration
-    
-```
-
-## Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| `file_picker` | CSV file selection |
-| `csv` | CSV parsing and generation |
-| `share_plus` | Export and share functionality |
-| `url_launcher` | Phone calls and maps integration |
-| `flutter_slidable` | Swipe actions on list items |
-| `sqflite` | Local database storage |
 
 ## Usage
 
