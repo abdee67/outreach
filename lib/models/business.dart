@@ -1,4 +1,5 @@
 import 'business_status.dart';
+import 'reject_reason.dart';
 
 class Business {
   Business({
@@ -12,6 +13,14 @@ class Business {
     this.googleMapsUrl,
     this.status = BusinessStatus.notContacted,
     this.notes = '',
+    this.dateFirstContacted,
+    this.dateLastContacted,
+    this.totalCallAttempts = 0,
+    this.lastCallDurationMin,
+    this.followUpDate,
+    this.rejectReason,
+    this.dealValue,
+    this.dateBooked,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -27,8 +36,21 @@ class Business {
   final String? googleMapsUrl;
   final BusinessStatus status;
   final String notes;
+  final DateTime? dateFirstContacted;
+  final DateTime? dateLastContacted;
+  final int totalCallAttempts;
+  final int? lastCallDurationMin;
+  final DateTime? followUpDate;
+  final RejectReason? rejectReason;
+  final double? dealValue;
+  final DateTime? dateBooked;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  bool get hasPendingFollowUp {
+    if (followUpDate == null) return false;
+    return followUpDate!.isAfter(DateTime.now());
+  }
 
   Business copyWith({
     int? id,
@@ -41,8 +63,20 @@ class Business {
     String? googleMapsUrl,
     BusinessStatus? status,
     String? notes,
+    DateTime? dateFirstContacted,
+    DateTime? dateLastContacted,
+    int? totalCallAttempts,
+    int? lastCallDurationMin,
+    DateTime? followUpDate,
+    RejectReason? rejectReason,
+    double? dealValue,
+    DateTime? dateBooked,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool clearFollowUpDate = false,
+    bool clearRejectReason = false,
+    bool clearDateBooked = false,
+    bool clearDealValue = false,
   }) {
     return Business(
       id: id ?? this.id,
@@ -55,8 +89,29 @@ class Business {
       googleMapsUrl: googleMapsUrl ?? this.googleMapsUrl,
       status: status ?? this.status,
       notes: notes ?? this.notes,
+      dateFirstContacted: dateFirstContacted ?? this.dateFirstContacted,
+      dateLastContacted: dateLastContacted ?? this.dateLastContacted,
+      totalCallAttempts: totalCallAttempts ?? this.totalCallAttempts,
+      lastCallDurationMin: lastCallDurationMin ?? this.lastCallDurationMin,
+      followUpDate: clearFollowUpDate ? null : (followUpDate ?? this.followUpDate),
+      rejectReason: clearRejectReason ? null : (rejectReason ?? this.rejectReason),
+      dealValue: clearDealValue ? null : (dealValue ?? this.dealValue),
+      dateBooked: clearDateBooked ? null : (dateBooked ?? this.dateBooked),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  Business recordCall({required int durationMin}) {
+    final now = DateTime.now();
+    return copyWith(
+      dateFirstContacted: dateFirstContacted ?? now,
+      dateLastContacted: now,
+      totalCallAttempts: totalCallAttempts + 1,
+      lastCallDurationMin: durationMin,
+      status: status == BusinessStatus.notContacted
+          ? BusinessStatus.called
+          : status,
     );
   }
 
@@ -72,6 +127,14 @@ class Business {
       'google_maps_url': googleMapsUrl,
       'status': status.name,
       'notes': notes,
+      'date_first_contacted': dateFirstContacted?.toIso8601String(),
+      'date_last_contacted': dateLastContacted?.toIso8601String(),
+      'total_call_attempts': totalCallAttempts,
+      'last_call_duration_min': lastCallDurationMin,
+      'follow_up_date': followUpDate?.toIso8601String(),
+      'reject_reason': rejectReason?.name,
+      'deal_value': dealValue,
+      'date_booked': dateBooked?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -89,9 +152,22 @@ class Business {
       googleMapsUrl: map['google_maps_url'] as String?,
       status: BusinessStatus.fromString(map['status'] as String? ?? ''),
       notes: map['notes'] as String? ?? '',
+      dateFirstContacted: _parseDateTime(map['date_first_contacted']),
+      dateLastContacted: _parseDateTime(map['date_last_contacted']),
+      totalCallAttempts: (map['total_call_attempts'] as num?)?.toInt() ?? 0,
+      lastCallDurationMin: (map['last_call_duration_min'] as num?)?.toInt(),
+      followUpDate: _parseDateTime(map['follow_up_date']),
+      rejectReason: RejectReason.fromString(map['reject_reason'] as String?),
+      dealValue: (map['deal_value'] as num?)?.toDouble(),
+      dateBooked: _parseDateTime(map['date_booked']),
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
+  }
+
+  static DateTime? _parseDateTime(Object? value) {
+    if (value == null || value.toString().isEmpty) return null;
+    return DateTime.tryParse(value.toString());
   }
 }
 
@@ -120,9 +196,9 @@ class BusinessStats {
   final int rejected;
 
   static const empty = BusinessStats(
-    total: 0, 
+    total: 0,
     notContacted: 0,
-    called: 0, 
+    called: 0,
     interested: 0,
     booked: 0,
     rejected: 0,

@@ -105,7 +105,15 @@ class CsvService {
       'Longitude',
       'Google Maps URL',
       'Status',
-      'Notes',
+      'Date First Contacted',
+      'Date Last Contacted',
+      'Total Call Attempts',
+      'Last Call Duration (min)',
+      'Follow-up Date',
+      'Reject Reason',
+      'Deal Value',
+      'Date Booked',
+      'Call Notes',
     ];
 
     final rows = businesses.map((b) {
@@ -118,11 +126,26 @@ class CsvService {
         b.longitude?.toString() ?? '',
         b.googleMapsUrl ?? '',
         b.status.label,
+        _formatDateTime(b.dateFirstContacted),
+        _formatDateTime(b.dateLastContacted),
+        b.totalCallAttempts.toString(),
+        b.lastCallDurationMin?.toString() ?? '',
+        _formatDateTime(b.followUpDate),
+        b.rejectReason?.label ?? '',
+        b.dealValue?.toString() ?? '',
+        _formatDateTime(b.dateBooked),
         b.notes,
       ];
     }).toList();
 
     return _codec.encode([exportHeaders, ...rows]);
+  }
+
+  String _formatDateTime(DateTime? value) {
+    if (value == null) return '';
+    final local = value.toLocal();
+    return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} '
+        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
   }
 
   Future<String> readFileContent(List<int> bytes) async {
